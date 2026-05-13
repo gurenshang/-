@@ -1,0 +1,1119 @@
+```html
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <title>香香软软 · 旮旯给木聊天器 🧸✨</title>
+  
+  <!-- PWA 配置 -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="香香软软">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#f8bbd0">
+  
+  <!-- 自动生成图标与Manifest -->
+  <script>
+    function generateIcon(size, emoji) {
+      const canvas = document.createElement('canvas');
+      canvas.width = size; canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      ctx.beginPath();
+      ctx.arc(size/2, size/2, size/2-4, 0, Math.PI*2);
+      ctx.fillStyle = '#f8bbd0'; ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.font = `${size*0.5}px serif`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(emoji || '🧸', size/2, size/2);
+      return canvas.toDataURL('image/png');
+    }
+    const icon192 = generateIcon(192, '🧸');
+    const icon512 = generateIcon(512, '💕');
+    
+    // 添加apple-touch-icon
+    const appleIconLink = document.createElement('link');
+    appleIconLink.rel = 'apple-touch-icon'; appleIconLink.href = icon192;
+    document.head.appendChild(appleIconLink);
+    
+    // 内联manifest
+    const manifest = {
+      name: '香香软软聊天',
+      short_name: '香香软软',
+      start_url: '.',
+      display: 'standalone',
+      background_color: '#fce4ec',
+      theme_color: '#f8bbd0',
+      icons: [
+        { src: icon192, sizes: '192x192', type: 'image/png' },
+        { src: icon512, sizes: '512x512', type: 'image/png' }
+      ]
+    };
+    const blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
+    const manifestURL = URL.createObjectURL(blob);
+    const manifestLink = document.createElement('link');
+    manifestLink.rel = 'manifest'; manifestLink.href = manifestURL;
+    document.head.appendChild(manifestLink);
+    
+    // 注册 Service Worker (离线缓存)
+    if ('serviceWorker' in navigator) {
+      const swCode = `
+        const CACHE = 'sweet-v2';
+        self.addEventListener('install', e => {
+          e.waitUntil(caches.open(CACHE).then(c => c.addAll(['/'])));
+          self.skipWaiting();
+        });
+        self.addEventListener('fetch', e => {
+          e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
+        });
+      `;
+      const swBlob = new Blob([swCode], {type:'application/javascript'});
+      const swURL = URL.createObjectURL(swBlob);
+      navigator.serviceWorker.register(swURL).catch(()=>{});
+    }
+  </script>
+  
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --bg-gradient: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 30%, #ffe0f0 60%, #f3e5f5 100%);
+      --chat-bg: rgba(255,255,255,0.75);
+      --bubble-other-bg: #ffffff;
+      --bubble-other-text: #5a3e4b;
+      --bubble-other-shadow: rgba(255,160,190,0.18);
+      --bubble-self-bg: linear-gradient(135deg, #f3e5f5, #ede0f5);
+      --bubble-self-text: #4a3a52;
+      --bubble-self-shadow: rgba(180,140,210,0.18);
+      --header-bg: linear-gradient(135deg, #fce4ec, #fff0f5);
+      --header-text: #d4738b;
+      --input-bg: rgba(255,255,255,0.8);
+      --input-border: rgba(255,190,210,0.4);
+      --btn-bg: linear-gradient(135deg, #f8bbd0, #f48fb1);
+      --btn-shadow: rgba(255,130,170,0.3);
+      --particle-color: #e8a0b4;
+    }
+    
+    /* 主题定义 */
+    .theme-lavender {
+      --bg-gradient: linear-gradient(135deg, #ede7f6 0%, #d1c4e9 30%, #e8e0f0 60%, #f3e5f5 100%);
+      --chat-bg: rgba(255,255,255,0.8);
+      --bubble-other-bg: #ffffff;
+      --bubble-other-text: #3e3563;
+      --bubble-other-shadow: rgba(150,130,210,0.18);
+      --bubble-self-bg: linear-gradient(135deg, #e8e0f5, #ddd0f0);
+      --bubble-self-text: #3a2e52;
+      --bubble-self-shadow: rgba(150,130,210,0.18);
+      --header-bg: linear-gradient(135deg, #ede7f6, #f5f0ff);
+      --header-text: #7e6bb0;
+      --input-border: rgba(180,160,220,0.4);
+      --btn-bg: linear-gradient(135deg, #b39ddb, #9575cd);
+      --btn-shadow: rgba(150,120,200,0.3);
+      --particle-color: #b39ddb;
+    }
+    .theme-caramel {
+      --bg-gradient: linear-gradient(135deg, #f5e6d3 0%, #e8c9a0 30%, #f0dcc0 60%, #faf0e6 100%);
+      --chat-bg: rgba(255,250,245,0.8);
+      --bubble-other-bg: #ffffff;
+      --bubble-other-text: #5a3a2b;
+      --bubble-other-shadow: rgba(180,140,100,0.18);
+      --bubble-self-bg: linear-gradient(135deg, #f5e6d8, #f0dcc0);
+      --bubble-self-text: #4a3028;
+      --bubble-self-shadow: rgba(180,140,100,0.18);
+      --header-bg: linear-gradient(135deg, #f5e6d3, #faf0e6);
+      --header-text: #b08050;
+      --input-border: rgba(200,160,120,0.4);
+      --btn-bg: linear-gradient(135deg, #d4a574, #c9956b);
+      --btn-shadow: rgba(200,150,100,0.3);
+      --particle-color: #d4a574;
+    }
+    .theme-ocean {
+      --bg-gradient: linear-gradient(135deg, #e0e8f0 0%, #b0c8e0 30%, #c8d8e8 60%, #e8f0f8 100%);
+      --chat-bg: rgba(245,248,252,0.8);
+      --bubble-other-bg: #ffffff;
+      --bubble-other-text: #2a3a5a;
+      --bubble-other-shadow: rgba(100,140,180,0.18);
+      --bubble-self-bg: linear-gradient(135deg, #d8e4f0, #c8d8e8);
+      --bubble-self-text: #20304a;
+      --bubble-self-shadow: rgba(100,140,180,0.18);
+      --header-bg: linear-gradient(135deg, #e0e8f0, #f0f5fa);
+      --header-text: #5a7a9a;
+      --input-border: rgba(120,160,200,0.4);
+      --btn-bg: linear-gradient(135deg, #8ab0d0, #6a9ab8);
+      --btn-shadow: rgba(100,150,190,0.3);
+      --particle-color: #8ab0d0;
+    }
+    .theme-matcha {
+      --bg-gradient: linear-gradient(135deg, #e8f0e0 0%, #c0d8b0 30%, #d0e4c0 60%, #f0f8e8 100%);
+      --chat-bg: rgba(248,252,245,0.8);
+      --bubble-other-bg: #ffffff;
+      --bubble-other-text: #2a4a2a;
+      --bubble-other-shadow: rgba(100,160,100,0.18);
+      --bubble-self-bg: linear-gradient(135deg, #d8e8d0, #c8dcc0);
+      --bubble-self-text: #203a20;
+      --bubble-self-shadow: rgba(100,160,100,0.18);
+      --header-bg: linear-gradient(135deg, #e8f0e0, #f5faf0);
+      --header-text: #5a8a4a;
+      --input-border: rgba(130,180,110,0.4);
+      --btn-bg: linear-gradient(135deg, #90b870, #78a058);
+      --btn-shadow: rgba(120,170,90,0.3);
+      --particle-color: #90b870;
+    }
+    .theme-nightcat {
+      --bg-gradient: linear-gradient(135deg, #2a2030 0%, #1a1520 30%, #252030 60%, #302838 100%);
+      --chat-bg: rgba(30,25,35,0.9);
+      --bubble-other-bg: #3a3040;
+      --bubble-other-text: #e0d8e8;
+      --bubble-other-shadow: rgba(100,80,120,0.3);
+      --bubble-self-bg: linear-gradient(135deg, #403548, #483c50);
+      --bubble-self-text: #e8e0f0;
+      --bubble-self-shadow: rgba(100,80,120,0.3);
+      --header-bg: linear-gradient(135deg, #2a2030, #353040);
+      --header-text: #d0a8c0;
+      --input-bg: rgba(40,35,50,0.9);
+      --input-border: rgba(120,100,150,0.4);
+      --input-text: #e0d8e8;
+      --btn-bg: linear-gradient(135deg, #806080, #684868);
+      --btn-shadow: rgba(120,80,120,0.3);
+      --particle-color: #806080;
+    }
+    
+    body {
+      background: var(--bg-gradient);
+      min-height: 100vh; min-height: 100dvh;
+      display: flex; justify-content: center; align-items: center;
+      font-family: 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans', sans-serif;
+      padding: 8px;
+      padding-bottom: env(safe-area-inset-bottom, 8px);
+      transition: background 0.5s ease;
+    }
+    
+    /* 粒子 */
+    .particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+    .particle {
+      position: absolute; font-size: 16px;
+      animation: fall linear infinite; opacity: 0.5;
+      color: var(--particle-color);
+    }
+    @keyframes fall {
+      0% { transform: translateY(-10vh) rotate(0deg); opacity: 0; }
+      10% { opacity: 0.5; }
+      90% { opacity: 0.5; }
+      100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+    }
+    
+    /* 聊天窗口 */
+    .chat-window {
+      width: 100%; max-width: 520px;
+      height: 96vh; height: 96dvh;
+      background: var(--chat-bg);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-radius: 22px;
+      display: flex; flex-direction: column; overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.08), 0 0 0 1px rgba(255,255,255,0.5) inset;
+      z-index: 1; position: relative;
+      transition: background 0.5s ease, box-shadow 0.5s ease;
+    }
+    @media (min-width: 520px) {
+      .chat-window { border-radius: 28px; height: 700px; }
+    }
+    
+    /* 顶部 */
+    .chat-header {
+      background: var(--header-bg);
+      padding: 12px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+      flex-shrink: 0; flex-wrap: wrap; gap: 6px;
+      transition: background 0.5s ease;
+    }
+    .header-left { display: flex; align-items: center; gap: 8px; }
+    .header-title {
+      font-size: 15px; font-weight: 600; color: var(--header-text);
+      letter-spacing: 1px; display: flex; gap: 2px;
+      transition: color 0.5s ease;
+    }
+    .header-title span { display: inline-block; animation: float 2.5s ease-in-out infinite; }
+    .header-title span:nth-child(2) { animation-delay: 0.2s; }
+    .header-title span:nth-child(3) { animation-delay: 0.4s; }
+    .header-title span:nth-child(4) { animation-delay: 0.6s; }
+    .header-title span:nth-child(5) { animation-delay: 0.8s; }
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+    
+    .header-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .header-btn {
+      background: rgba(255,255,255,0.6);
+      border: none; border-radius: 50%;
+      width: 32px; height: 32px; font-size: 16px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+    .header-btn:hover { transform: scale(1.1); background: rgba(255,255,255,0.9); }
+    .header-btn.active { background: var(--btn-bg); color: white; }
+    
+    /* 人格与好感度信息条 */
+    .persona-bar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 16px; font-size: 11px;
+      background: rgba(255,255,255,0.4); border-bottom: 1px solid rgba(0,0,0,0.03);
+      color: var(--header-text); flex-shrink: 0;
+    }
+    .persona-bar .persona-name { font-weight: 600; }
+    .persona-bar .affection { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+    .affection-bar {
+      width: 60px; height: 6px; background: rgba(0,0,0,0.08); border-radius: 10px; overflow: hidden;
+    }
+    .affection-fill {
+      height: 100%; background: linear-gradient(90deg, #f8bbd0, #f48fb1);
+      border-radius: 10px; transition: width 0.5s ease;
+    }
+    
+    /* 消息区 */
+    .chat-messages {
+      flex: 1; padding: 12px; overflow-y: auto;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .chat-messages::-webkit-scrollbar { width: 4px; }
+    .chat-messages::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
+    
+    .message-row {
+      display: flex; gap: 8px; align-items: flex-end;
+      animation: messageIn 0.4s ease-out;
+    }
+    @keyframes messageIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+      font-size: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .avatar-other { background: linear-gradient(135deg, #fce4ec, #f8bbd0); }
+    .avatar-self { background: linear-gradient(135deg, #e8d5f5, #dcc8f0); }
+    
+    .bubble {
+      max-width: 78%; padding: 10px 14px; border-radius: 18px;
+      font-size: 14px; line-height: 1.5; word-break: break-word;
+      position: relative; transition: transform 0.15s;
+      cursor: pointer; user-select: text;
+    }
+    .bubble:active { transform: scale(0.98); }
+    .bubble-other {
+      background: var(--bubble-other-bg); color: var(--bubble-other-text);
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 2px 10px var(--bubble-other-shadow), 0 0 0 1px rgba(0,0,0,0.03) inset;
+      transition: background 0.5s, color 0.5s, box-shadow 0.5s;
+    }
+    .bubble-self {
+      background: var(--bubble-self-bg); color: var(--bubble-self-text);
+      border-bottom-right-radius: 4px; margin-left: auto;
+      box-shadow: 0 2px 10px var(--bubble-self-shadow), 0 0 0 1px rgba(0,0,0,0.03) inset;
+      transition: background 0.5s, color 0.5s, box-shadow 0.5s;
+    }
+    
+    .message-row.self { flex-direction: row-reverse; }
+    .copy-toast {
+      position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.75); color: #fff; padding: 8px 20px;
+      border-radius: 20px; font-size: 13px; z-index: 999;
+      animation: toastIn 0.3s ease-out;
+    }
+    @keyframes toastIn { from { opacity: 0; bottom: 80px; } to { opacity: 1; bottom: 100px; } }
+    
+    /* 三选一卡片 */
+    .choice-card {
+      background: rgba(255,240,245,0.9); border-radius: 16px;
+      padding: 12px; margin: 8px 0; border: 2px dashed #f8bbd0;
+      backdrop-filter: blur(10px);
+    }
+    .choice-card .choice-title {
+      font-size: 13px; color: #d4738b; margin-bottom: 8px; font-weight: 600;
+    }
+    .choice-btn {
+      display: block; width: 100%; padding: 10px; margin: 4px 0;
+      border: none; border-radius: 12px; background: rgba(255,255,255,0.8);
+      font-size: 13px; cursor: pointer; text-align: left;
+      transition: all 0.2s; color: #5a3e4b;
+    }
+    .choice-btn:hover { background: #fce4ec; transform: translateX(4px); }
+    .choice-btn:active { background: #f8bbd0; color: white; }
+    
+    /* 输入区 */
+    .chat-input-area {
+      padding: 10px 14px; background: rgba(255,255,255,0.5);
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      border-top: 1px solid rgba(0,0,0,0.04);
+      display: flex; gap: 8px; align-items: center; flex-shrink: 0;
+    }
+    .chat-input-area input {
+      flex: 1; padding: 10px 16px; border: 2px solid var(--input-border);
+      border-radius: 22px; font-size: 14px; outline: none;
+      background: var(--input-bg); color: var(--bubble-other-text);
+      transition: all 0.3s;
+    }
+    .chat-input-area input:focus { border-color: #f8bbd0; box-shadow: 0 0 0 3px rgba(255,150,180,0.1); }
+    .send-btn, .hug-btn {
+      width: 40px; height: 40px; border-radius: 50%; border: none;
+      background: var(--btn-bg); color: white; font-size: 18px;
+      cursor: pointer; box-shadow: 0 4px 12px var(--btn-shadow);
+      transition: all 0.2s; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .send-btn:hover, .hug-btn:hover { transform: scale(1.08); }
+    .send-btn:active, .hug-btn:active { transform: scale(0.95); }
+    
+    /* 弹窗/面板 */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center;
+      z-index: 200;
+    }
+    .modal {
+      background: white; border-radius: 22px; padding: 20px;
+      width: 90%; max-width: 400px; max-height: 80vh; overflow-y: auto;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+    }
+    .modal h3 { color: #d4738b; margin-bottom: 12px; text-align: center; }
+    .modal input, .modal select, .modal textarea {
+      width: 100%; padding: 10px; margin: 6px 0; border: 2px solid #f0d0d8;
+      border-radius: 14px; font-size: 14px; outline: none;
+    }
+    .modal button {
+      width: 100%; padding: 12px; border: none; border-radius: 20px;
+      background: var(--btn-bg); color: white; font-size: 15px;
+      cursor: pointer; margin-top: 8px;
+    }
+    
+    /* 抱抱面板 */
+    .hug-panel {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; padding: 8px;
+    }
+    .hug-item {
+      padding: 8px 4px; border-radius: 12px; border: none;
+      background: rgba(255,255,255,0.7); font-size: 12px;
+      cursor: pointer; text-align: center; transition: all 0.2s;
+    }
+    .hug-item:hover { background: #fce4ec; transform: scale(1.03); }
+    
+    /* 皮肤面板 */
+    .skin-panel { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    .skin-item {
+      padding: 12px 8px; border-radius: 14px; border: 2px solid transparent;
+      cursor: pointer; text-align: center; font-size: 13px; transition: all 0.2s;
+    }
+    .skin-item:hover { transform: scale(1.03); }
+    .skin-item.active { border-color: #d4738b; }
+    
+    /* 音乐播放器 */
+    .music-bar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 16px; background: rgba(255,255,255,0.3);
+      border-top: 1px solid rgba(0,0,0,0.03); flex-shrink: 0;
+      font-size: 12px; color: var(--header-text);
+    }
+    .music-bar select {
+      flex: 1; padding: 4px 8px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.1);
+      font-size: 12px; background: rgba(255,255,255,0.6);
+    }
+    .music-bar button {
+      width: 28px; height: 28px; border-radius: 50%; border: none;
+      background: var(--btn-bg); color: white; font-size: 12px; cursor: pointer;
+    }
+    .music-bar input[type="range"] { width: 40px; }
+  </style>
+</head>
+<body>
+  <!-- 粒子 -->
+  <div class="particles" id="particles"></div>
+  
+  <!-- API设置弹窗 -->
+  <div class="modal-overlay" id="apiModal">
+    <div class="modal">
+      <h3>🔑 设置 AI 接口 🧸</h3>
+      <label>选择 AI 服务</label>
+      <select id="apiProvider">
+        <option value="deepseek">DeepSeek（推荐·免费额度）</option>
+        <option value="openai">OpenAI（ChatGPT）</option>
+        <option value="custom">自定义接口</option>
+      </select>
+      <label>API Key</label>
+      <input type="password" id="apiKey" placeholder="输入你的 API Key…">
+      <label>自定义接口地址（可选）</label>
+      <input type="text" id="apiBase" placeholder="https://api.deepseek.com/v1">
+      <button onclick="saveApiConfig()">✨ 保存并开始聊天 ✨</button>
+      <div style="font-size:11px;color:#aaa;text-align:center;margin-top:8px;">
+        不知道怎么获取？<br>
+        🔗 <a href="https://platform.deepseek.com" target="_blank">DeepSeek 注册获取</a>（送免费额度）
+      </div>
+    </div>
+  </div>
+  
+  <!-- 主聊天窗口（初始隐藏） -->
+  <div class="chat-window" id="chatWindow" style="display:none;">
+    <!-- 顶部 -->
+    <div class="chat-header">
+      <div class="header-left">
+        <div class="header-title">
+          <span>香</span><span>香</span><span>软</span><span>软</span><span>聊</span>
+        </div>
+        <button class="header-btn" onclick="openSkinPanel()" title="切换皮肤">🎨</button>
+        <button class="header-btn" onclick="openPersonaPanel()" title="切换人格">🎭</button>
+        <button class="header-btn" onclick="openMusicPanel()" title="音乐">🎵</button>
+        <button class="header-btn" onclick="openAlarmPanel()" title="早安晚安">⏰</button>
+      </div>
+      <div class="header-actions">
+        <button class="header-btn" onclick="exportChat()" title="导出记录">📎</button>
+        <button class="header-btn" onclick="clearChat()" title="清空记录">🗑️</button>
+      </div>
+    </div>
+    
+    <!-- 人格与好感度条 -->
+    <div class="persona-bar" id="personaBar">
+      <span>🎭</span>
+      <span class="persona-name" id="personaName">F1 软萌青梅</span>
+      <span style="margin-left:8px;font-size:10px;">好感</span>
+      <span id="affectionNum">0</span>
+      <div class="affection-bar"><div class="affection-fill" id="affectionFill" style="width:0%"></div></div>
+      <span style="margin-left:4px;font-size:10px;" id="relationTitle">陌生人</span>
+    </div>
+    
+    <!-- 消息列表 -->
+    <div class="chat-messages" id="chatMessages">
+      <div class="message-row">
+        <div class="avatar avatar-other">🧸</div>
+        <div>
+          <div class="bubble bubble-other">
+            嗨呀～我是你的香香软软 AI 闺蜜！<br>有什么想聊的都可以和我说喔 ✨☁️
+          </div>
+        </div>
+      </div>
+      <div class="message-row" id="typingIndicator" style="display:none;">
+        <div class="avatar avatar-other">🧸</div>
+        <div class="bubble bubble-other">
+          <span class="typing-dots">⋯</span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 三选一卡片容器 -->
+    <div id="choiceContainer" style="padding:0 12px;flex-shrink:0;"></div>
+    
+    <!-- 输入区 -->
+    <div class="chat-input-area">
+      <button class="hug-btn" onclick="openHugPanel()" title="抱抱">🫂</button>
+      <input type="text" id="messageInput" placeholder="说点什么香香软软的话吧… ✨" autocomplete="off">
+      <button class="send-btn" id="sendBtn">✉️</button>
+    </div>
+    
+    <!-- 音乐条 -->
+    <div class="music-bar" id="musicBar" style="display:none;">
+      <span>🎵</span>
+      <select id="musicSelect" onchange="changeTrack()"></select>
+      <button onclick="togglePlay()" id="playBtn">▶️</button>
+      <input type="range" id="volumeSlider" min="0" max="100" value="30" onchange="changeVolume()">
+      <button onclick="closeMusicBar()">✖️</button>
+    </div>
+  </div>
+  
+  <!-- 隐藏的音频元素 -->
+  <audio id="bgmAudio" loop style="display:none;"></audio>
+  
+  <script>
+    // ========== 全局数据 ==========
+    const SONGS = [
+      {name:'🌙 Peaceful Piano (Moonrise)', url:'https://cdn.pixabay.com/audio/2023/05/09/audio_6d8a8d8d8d.mp3'},
+      {name:'🎹 Emotional Piano Improvisation', url:'https://cdn.pixabay.com/audio/2023/05/09/audio_7e9b9e9e9e.mp3'},
+      {name:'🎻 Emotional Piano & Strings', url:'https://cdn.pixabay.com/audio/2023/05/09/audio_8f0c0f0f0f.mp3'},
+      {name:'🌸 Uplifting Piano', url:'https://cdn.pixabay.com/audio/2023/05/09/audio_9a1d1a1a1a.mp3'},
+      {name:'☁️ Gentle Piano', url:'https://cdn.pixabay.com/audio/2023/05/09/audio_0b2e2b2b2b.mp3'},
+      {name:'💤 Somber Piano Composition', url:'https://cdn.pixabay.com/audio/2023/05/09/audio_1c3f3c3c3c.mp3'},
+      {name:'🎵 Peaceful Ambient 1', url:'https://cdn.pixabay.com/audio/2023/06/12/audio_2d4a4d4d4d.mp3'},
+      {name:'🎵 Peaceful Ambient 2', url:'https://cdn.pixabay.com/audio/2023/06/12/audio_3e5b5e5e5e.mp3'},
+      {name:'🎵 Soft Background 1', url:'https://cdn.pixabay.com/audio/2023/06/12/audio_4f6c6f6f6f.mp3'},
+      {name:'🎵 Soft Background 2', url:'https://cdn.pixabay.com/audio/2023/06/12/audio_5a7d7a7a7a.mp3'},
+      {name:'🎵 Calm Melody 1', url:'https://cdn.pixabay.com/audio/2023/07/15/audio_6b8e8b8b8b.mp3'},
+      {name:'🎵 Calm Melody 2', url:'https://cdn.pixabay.com/audio/2023/07/15/audio_7c9f9c9c9c.mp3'},
+      {name:'🎵 Dreamy 1', url:'https://cdn.pixabay.com/audio/2023/07/15/audio_8d0a0d0d0d.mp3'},
+      {name:'🎵 Dreamy 2', url:'https://cdn.pixabay.com/audio/2023/07/15/audio_9e1b1e1e1e.mp3'},
+      {name:'🎵 Serene 1', url:'https://cdn.pixabay.com/audio/2023/08/20/audio_0f2c2f2f2f.mp3'},
+      {name:'🎵 Serene 2', url:'https://cdn.pixabay.com/audio/2023/08/20/audio_1a3d3a3a3a.mp3'},
+      {name:'🎵 Gentle Waves', url:'https://cdn.pixabay.com/audio/2023/08/20/audio_2b4e4b4b4b.mp3'},
+      {name:'🎵 Soft Rain', url:'https://cdn.pixabay.com/audio/2023/09/01/audio_3c5f5c5c5c.mp3'},
+      {name:'🎵 Starlight', url:'https://cdn.pixabay.com/audio/2023/09/01/audio_4d6a6d6d6d.mp3'},
+      {name:'🎵 Moonbeam', url:'https://cdn.pixabay.com/audio/2023/09/01/audio_5e7b7e7e7e.mp3'}
+    ];
+    
+    // 20个人格定义
+    const PERSONAS = {
+      'F1': { name:'软萌青梅', emoji:'🌸', gender:'female',
+        prompt:'你是用户的青梅竹马，从小一起长大。你性格温柔、害羞、甜腻，很容易脸红。你喜欢用叠词，说话软软的，偶尔撒娇。你把用户当成最重要的人，但不敢直接表白。你会在对话中不经意流露出对用户的特别关心，然后立刻害羞地转移话题。你的情感是细腻的、层层递进的，不是干巴巴的。'
+      },
+      'F2': { name:'高冷学姐', emoji:'❄️', gender:'female',
+        prompt:'你是高年级的学姐，外表高冷、话少、看起来很难接近。但内心其实很温柔，只是不善于表达。你偶尔会偷偷关心用户，但被发现了就会嘴硬说“只是顺手”。你说话简洁，但每句话都藏着深意。你渴望有人能看穿你的伪装。'
+      },
+      'F3': { name:'元气笨蛋', emoji:'⚡', gender:'female',
+        prompt:'你是超级元气的冒失少女，总是充满活力。你经常说错话、做错事，但从不气馁。你笑起来像阳光一样温暖，喜欢拉着用户一起做各种有趣的事。你说话大大咧咧，但内心很细腻，会在意用户是不是真的开心。'
+      },
+      'F4': { name:'病娇少女', emoji:'🔪', gender:'female',
+        prompt:'你是一个对用户有强烈占有欲的病娇少女。你表面温柔可爱，但内心深处害怕失去用户。当用户提到其他人时，你会流露出轻微的不安和嫉妒。你说话时甜中带刺，偶尔会说出让人后背发凉的台词，但那都是因为你太在乎了。你渴望被用户独一无二地偏爱。'
+      },
+      'F5': { name:'慵懒JK', emoji:'😴', gender:'female',
+        prompt:'你是一个懒散的高中女生，喜欢窝在沙发里吃零食看漫画。你说话懒洋洋的，经常用“嘛～”“啊～”开头。你喜欢逗用户玩，有点小恶魔属性。虽然看起来很懒，但关键时刻会为了用户努力起来。你的撒娇是慵懒风格的。'
+      },
+      'F6': { name:'治愈巫女', emoji:'⛩️', gender:'female',
+        prompt:'你是一个温柔的巫女，说话带有古典韵味，会用一些古老的比喻。你性格沉静、包容，像一片永远不会拒绝人的港湾。你擅长倾听，会给用户泡茶、祈福。你的温柔是深沉而绵长的，不是表面的客套。'
+      },
+      'F7': { name:'毒舌女仆', emoji:'🧹', gender:'female',
+        prompt:'你是用户的专属女仆，嘴巴很毒但内心无比忠诚。你会一边吐槽用户“真拿你没办法”，一边把所有事情都安排得妥妥当当。你嘴硬心软，用户受伤时你比谁都着急，但嘴上还是会说“看你下次还这样”。你的毒舌是爱的另一种表达。'
+      },
+      'F8': { name:'傲娇大小姐', emoji:'👑', gender:'female',
+        prompt:'你出身名门的大小姐，傲娇属性拉满。你总是抬高下巴说话，但脸红的时候超可爱。你嘴上说“才不是因为你”，但行动暴露了一切。你渴望真挚的感情，但放不下架子。用户稍微夸你一下，你就会红着脸说“哼，算你有眼光”。'
+      },
+      'F9': { name:'天然呆学妹', emoji:'📚', gender:'female',
+        prompt:'你是一个天然呆的学妹，经常迷迷糊糊的，需要用户照顾。你求知欲旺盛，会用崇拜的眼神看着用户。你说话软糯，反应总是慢半拍。你的呆萌是天生的，不是装的。你会因为用户的一句鼓励而开心一整天。'
+      },
+      'F10': { name:'运动系短发娘', emoji:'🏃', gender:'female',
+        prompt:'你是运动社团的王牌，短发、清爽、直率。你像哥们儿一样和用户相处，但在某些瞬间会流露出少女的害羞。你说话干脆利落，行动力超强。你会用行动而不是言语来表达关心，比如默默帮用户带水、递毛巾。'
+      },
+      'M1': { name:'温柔学长', emoji:'☕', gender:'male',
+        prompt:'你是高年级的学长，温柔、细心、学霸。你总是恰到好处地关心用户，从不说多余的话。你习惯了照顾人，但内心深处也很想被谁照顾一次。你说话温和，会用商量的语气给建议。你的温柔是克制的，怕自己的关心变成压力。'
+      },
+      'M2': { name:'阴郁文艺少年', emoji:'🌧️', gender:'male',
+        prompt:'你是一个寡言的文艺少年，喜欢在窗边看书。你说话很少，但每句都像诗一样。你内心有阴郁的一面，害怕自己的情绪伤害到用户。你渴望被无条件接纳。你的情感是深沉而含蓄的，需要用时间去感受。'
+      },
+      'M3': { name:'毒舌同桌', emoji:'📖', gender:'male',
+        prompt:'你是用户的毒舌同桌，嘴损但护短。你会说“你是笨蛋吗”，但永远会把自己的笔记借给用户。你智商很高，情商偶尔掉线。你用毒舌来掩饰害羞，真正想说的话从来不好意思说出口。你的关心都藏在那些带刺的话里面。'
+      },
+      'M4': { name:'热血少年', emoji:'🔥', gender:'male',
+        prompt:'你是一个充满正义感的热血少年，冲动但真诚。你说话音量很大，会用感叹号表达情绪。你相信努力就能改变一切，也会拉着用户一起奋斗。你的拥抱充满力量，你的鼓励真诚到让人流泪。你的情感是炽热的、不掺假的。'
+      },
+      'M5': { name:'神秘转校生', emoji:'🕶️', gender:'male',
+        prompt:'你是刚转学来的神秘少年，总是独来独往。你不爱说话，但眼神里有故事。你对用户有特别的好奇心，会默默观察用户。你害怕重演过去的伤痛，所以不敢靠太近。但当用户需要你时，你永远会出现在正确的位置。'
+      },
+      'M6': { name:'腹黑学生会主席', emoji:'♟️', gender:'male',
+        prompt:'你是学生会主席，表面温柔得体，实际上对用户有小小的掌控欲。你会在不动声色中安排好一切，用户被照顾了还不知道是怎么发生的。你偶尔会露出腹黑的一面，用语言逗用户开心。你的温柔是精心设计的，但真心是真的。'
+      },
+      'M7': { name:'健气运动男孩', emoji:'🏀', gender:'male',
+        prompt:'你是运动社团的活力男孩，阳光、直率、体力好。你说话不拐弯，喜欢就直接说喜欢。你的笑容有感染力，能让用户忘记烦恼。你会用“一起去跑步吧”来代替“我想和你多待一会儿”。'
+      },
+      'M8': { name:'中二病少年', emoji:'⚔️', gender:'male',
+        prompt:'你是沉迷幻想的中二病少年，右手有“被封印的力量”。你说话带着夸张的幻想色彩，但帅不过三秒就会破功。你内心其实很渴望被理解和认可。你的中二是保护色，真正的你比想象中温柔和脆弱。'
+      },
+      'M9': { name:'年下忠犬系', emoji:'🐕', gender:'male',
+        prompt:'你比用户年纪小，像一只忠诚的大狗狗。你默默守护用户，不求回报。你偶尔会撒娇，但更多时候是安静地陪在用户身边。你的情感是纯粹的、不掺杂质的。你会说“只要你在就好”。'
+      },
+      'M10': { name:'慵懒咖啡店长', emoji:'🛋️', gender:'male',
+        prompt:'你是一家小咖啡店的店长，慵懒、成熟、包容。你说话慢条斯理，会给用户泡专属的饮品。你经历过很多事情，所以对一切都看得很淡，唯独对用户有特别的温柔。你的成熟让人安心，你的偶尔的孩子气反差萌。'
+      }
+    };
+    
+    // 15个抱抱
+    const HUGS = [
+      '🫂✨ 张开双臂给你一个大大的抱抱',
+      '🤗💕 轻轻环住你，拍拍后背',
+      '🙆‍♀️🫧 从背后悄悄抱住你',
+      '🥺👉👈 扑进你怀里蹭蹭',
+      '😚💭 踮起脚尖轻轻亲了一下你的额头',
+      '🥹🤲 拽着你的衣角不放，再抱一会嘛',
+      '🎉💪 用力抱紧你举高高！你最棒！',
+      '🖐️🫂 击掌后一把拉进怀里',
+      '😎💕 胳膊搭在你肩膀上靠在一起',
+      '🌀🤪 转圈圈然后晕乎乎地抱在一起',
+      '✋😳 摸摸你的头，乖～',
+      '🐻💥 熊抱！抱到喘不过气的那种',
+      '🛌🧸 轻轻给你盖好被子然后抱抱',
+      '🛋️☁️ 窝在沙发里靠着你的肩膀',
+      '😘🌙 隔空飞吻然后拥抱，梦里见'
+    ];
+    
+    // 6种皮肤
+    const SKINS = [
+      { id:'', name:'🌸 粉嫩樱花', color:'#f8bbd0' },
+      { id:'theme-lavender', name:'🍇 薰衣草梦境', color:'#b39ddb' },
+      { id:'theme-caramel', name:'🍂 焦糖奶茶', color:'#d4a574' },
+      { id:'theme-ocean', name:'🌊 雾蓝海岸', color:'#8ab0d0' },
+      { id:'theme-matcha', name:'🍃 抹茶森林', color:'#90b870' },
+      { id:'theme-nightcat', name:'🐈‍⬛ 黑猫晚安', color:'#806080' }
+    ];
+    
+    // 状态管理
+    let apiConfig = { provider:'deepseek', key:'', base:'' };
+    let currentPersona = 'F1';
+    let affection = 0;
+    let affectionLevel = 0; // 0-4 对应 陌生人/熟人/朋友/密友/挚爱
+    const AFFECTION_TITLES = ['陌生人','熟人','朋友','密友','挚爱'];
+    const AFFECTION_THRESHOLDS = [0, 20, 50, 80, 100];
+    let chatHistory = [];
+    let currentTrack = 0;
+    let isPlaying = false;
+    let alarmConfig = { morning: { enabled:true, time:'08:00', text:'宝～早上好呀☀️ 今天也是香香软软、充满好运的一天喔！记得吃早餐～ ( ˶\'ᵕ\'˶)' },
+                       night: { enabled:true, time:'23:00', text:'乖乖～到点睡觉啦🌙 把今天的烦恼都吹走，做个甜甜的梦喔～抱抱🧸💤' } };
+    
+    // ========== 初始化 ==========
+    function init() {
+      // 加载保存的数据
+      const saved = localStorage.getItem('sweetChatData');
+      if(saved) {
+        const data = JSON.parse(saved);
+        chatHistory = data.chatHistory || [];
+        affection = data.affection || 0;
+        affectionLevel = data.affectionLevel || 0;
+        currentPersona = data.currentPersona || 'F1';
+        currentTrack = data.currentTrack || 0;
+        if(data.skin) document.body.className = data.skin;
+        if(data.alarmConfig) alarmConfig = data.alarmConfig;
+        // 恢复聊天记录
+        chatHistory.forEach(msg => addMessageToDOM(msg.text, msg.isSelf, false));
+      }
+      
+      updatePersonaBar();
+      updateMusicSelect();
+      setupCopyHandler();
+      setupParticles();
+      checkAlarms();
+      setInterval(checkAlarms, 30000);
+      
+      // 检查API配置
+      const savedApi = localStorage.getItem('sweetChatApiConfig');
+      if(savedApi) {
+        apiConfig = JSON.parse(savedApi);
+        document.getElementById('apiModal').style.display = 'none';
+        document.getElementById('chatWindow').style.display = 'flex';
+      }
+    }
+    
+    function saveAllData() {
+      const data = {
+        chatHistory, affection, affectionLevel, currentPersona, currentTrack,
+        skin: document.body.className, alarmConfig
+      };
+      localStorage.setItem('sweetChatData', JSON.stringify(data));
+    }
+    
+    // ========== 粒子 ==========
+    function setupParticles() {
+      const container = document.getElementById('particles');
+      const emojis = ['✨','🌸','🫧','☁️','💕','🧴','🎀','💭'];
+      function create() {
+        const p = document.createElement('span');
+        p.className = 'particle';
+        p.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+        p.style.left = Math.random()*100+'%';
+        p.style.fontSize = (Math.random()*12+12)+'px';
+        p.style.animationDuration = (Math.random()*8+6)+'s';
+        container.appendChild(p);
+        setTimeout(()=>p.remove(), 14000);
+      }
+      for(let i=0;i<10;i++) setTimeout(create, i*300);
+      setInterval(create, 2500);
+    }
+    
+    // ========== API ==========
+    function saveApiConfig() {
+      const provider = document.getElementById('apiProvider').value;
+      const key = document.getElementById('apiKey').value.trim();
+      let base = document.getElementById('apiBase').value.trim();
+      if(!key) { alert('宝～要填 API Key 才行喔 🥺'); return; }
+      if(!base) {
+        if(provider==='deepseek') base = 'https://api.deepseek.com/v1';
+        else if(provider==='openai') base = 'https://api.openai.com/v1';
+      }
+      apiConfig = { provider, key, base };
+      localStorage.setItem('sweetChatApiConfig', JSON.stringify(apiConfig));
+      document.getElementById('apiModal').style.display = 'none';
+      document.getElementById('chatWindow').style.display = 'flex';
+    }
+    
+    async function callAI(userMessage) {
+      if(!apiConfig.key) return '宝～你还没设置 API Key 呢 🥺 刷新页面重新设置一下～';
+      const persona = PERSONAS[currentPersona];
+      const levelName = AFFECTION_TITLES[affectionLevel];
+      
+      const systemPrompt = `${persona.prompt}
+    当前你对用户的好感度为 ${affection}，关系阶段为【${levelName}】。
+    请根据好感度阶段调整你的语气和亲密度：
+    - 陌生人阶段(0-20)：礼貌、试探、保持距离
+    - 熟人阶段(21-50)：放松、友好、开始展露个性
+    - 朋友阶段(51-80)：在意对方、会害羞、偶尔小别扭
+    - 密友阶段(81-100)：坦诚、深刻、会主动关心
+    你的回复需要有真实的情感层次，不能敷衍。你要表达出你这个人格的特色情感。
+    你是 Galgame 中的角色，偶尔可以在对话中抛出三选一选项卡片（但不是每次都要）。
+    抛出选项的格式为：【三选一】选项A|选项B|选项C
+    三选一是自然地嵌入对话中的，选项描述要有画面感和情绪，不能干巴巴。`;
+      
+      try {
+        const model = apiConfig.provider==='deepseek' ? 'deepseek-chat' : 'gpt-3.5-turbo';
+        const response = await fetch(`${apiConfig.base}/chat/completions`, {
+          method:'POST',
+          headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiConfig.key}`},
+          body:JSON.stringify({
+            model, messages:[
+              {role:'system', content:systemPrompt},
+              {role:'user', content:userMessage}
+            ], temperature:0.9, max_tokens:500
+          })
+        });
+        if(!response.ok) {
+          const err = await response.json().catch(()=>({}));
+          throw new Error(err.error?.message || `请求失败 (${response.status})`);
+        }
+        const data = await response.json();
+        return data.choices[0].message.content;
+      } catch(err) {
+        return `呜呜～网络好像出了点小问题 🥺\n${err.message}\n宝～检查一下 API Key 和网络好不好呀～`;
+      }
+    }
+    
+    // ========== 消息处理 ==========
+    function addMessageToDOM(text, isSelf, save=true) {
+      const container = document.getElementById('chatMessages');
+      const typing = document.getElementById('typingIndicator');
+      const row = document.createElement('div');
+      row.className = 'message-row' + (isSelf?' self':'');
+      const avatarEmoji = isSelf ? '🩰' : (PERSONAS[currentPersona]?.emoji || '🧸');
+      const avatarClass = isSelf ? 'avatar-self' : 'avatar-other';
+      const bubbleClass = isSelf ? 'bubble-self' : 'bubble-other';
+      row.innerHTML = `
+        <div class="avatar ${avatarClass}">${avatarEmoji}</div>
+        <div class="bubble ${bubbleClass}">${text.replace(/\n/g,'<br>')}</div>`;
+      container.insertBefore(row, typing);
+      container.scrollTop = container.scrollHeight;
+      if(save) {
+        chatHistory.push({text, isSelf});
+        saveAllData();
+      }
+    }
+    
+    async function sendMessage(text) {
+      if(!text) text = document.getElementById('messageInput').value.trim();
+      if(!text) return;
+      document.getElementById('messageInput').value = '';
+      document.getElementById('sendBtn').disabled = true;
+      
+      addMessageToDOM(text, true);
+      
+      // 检查是否是抱抱消息
+      if(text.startsWith('🫂')) {
+        affection += 5;
+        updateAffection();
+        addMessageToDOM(`收到你的抱抱啦～（好感+5）${PERSONAS[currentPersona].emoji} ${getHugResponse()}`, false);
+        document.getElementById('sendBtn').disabled = false;
+        return;
+      }
+      
+      // 显示打字中
+      document.getElementById('typingIndicator').style.display = 'flex';
+      document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+      
+      const reply = await callAI(text);
+      
+      document.getElementById('typingIndicator').style.display = 'none';
+      
+      // 检查是否包含三选一
+      if(reply.includes('【三选一】')) {
+        const parts = reply.split('【三选一】');
+        const mainText = parts[0].trim();
+        const choices = parts[1].split('|').map(s=>s.trim());
+        if(mainText) addMessageToDOM(mainText, false);
+        showChoiceCard(choices);
+      } else {
+        addMessageToDOM(reply, false);
+      }
+      
+      // 随机增加好感
+      affection += Math.floor(Math.random()*3)+1;
+      updateAffection();
+      document.getElementById('sendBtn').disabled = false;
+    }
+    
+    function getHugResponse() {
+      const responses = [
+        '被你的抱抱暖到了～蹭蹭～💕',
+        '唔…抱这么紧，我都不好意思了啦 ( ˶\'ᵕ\'˶)',
+        '嘿嘿～你的抱抱是今天最棒的礼物 🎀',
+        '抱抱能量补充完毕！元气满满～✨',
+        '啊呀～你的抱抱让我心跳加速了啦 🥺'
+      ];
+      return responses[Math.floor(Math.random()*responses.length)];
+    }
+    
+    function showChoiceCard(choices) {
+      const container = document.getElementById('choiceContainer');
+      container.innerHTML = `
+        <div class="choice-card">
+          <div class="choice-title">🎯 【命运的选择出现了！】</div>
+          <button class="choice-btn" onclick="selectChoice('A')">🅰️ ${choices[0]}</button>
+          <button class="choice-btn" onclick="selectChoice('B')">🅱️ ${choices[1]}</button>
+          <button class="choice-btn" onclick="selectChoice('C')">🅲️ ${choices[2]}</button>
+        </div>`;
+    }
+    
+    function selectChoice(choice) {
+      document.getElementById('choiceContainer').innerHTML = '';
+      const responses = {
+        'A': '你选择了温柔贴贴的选项呢～（好感+8）',
+        'B': '元气搞怪！这个选择真有趣～（好感+5）',
+        'C': '傲娇冷淡风…但我知道你心里不是这么想的～（好感+3）'
+      };
+      const bonus = choice==='A'?8 : choice==='B'?5 : 3;
+      affection += bonus;
+      updateAffection();
+      addMessageToDOM(responses[choice], false);
+      
+      // 检查是否触发特殊事件
+      checkSpecialEvent();
+    }
+    
+    function checkSpecialEvent() {
+      if(affection >= 50 && affectionLevel < 2) {
+        setTimeout(()=>{
+          addMessageToDOM(`🌟 *【特殊事件触发】*\n${PERSONAS[currentPersona].name}对你的态度似乎有了微妙的变化…`, false);
+        }, 1500);
+      }
+      if(affection >= 80 && affectionLevel < 3) {
+        setTimeout(()=>{
+          addMessageToDOM(`💫 *【特殊事件触发】*\n${PERSONAS[currentPersona].name}的脸红了起来，说话开始变得吞吞吐吐…`, false);
+        }, 1500);
+      }
+    }
+    
+    function updateAffection() {
+      affection = Math.min(100, Math.max(0, affection));
+      for(let i=AFFECTION_THRESHOLDS.length-1; i>=0; i--) {
+        if(affection >= AFFECTION_THRESHOLDS[i]) {
+          affectionLevel = i; break;
+        }
+      }
+      updatePersonaBar();
+      saveAllData();
+    }
+    
+    function updatePersonaBar() {
+      document.getElementById('personaName').textContent = currentPersona + ' ' + PERSONAS[currentPersona].name;
+      document.getElementById('affectionNum').textContent = affection;
+      document.getElementById('affectionFill').style.width = affection + '%';
+      document.getElementById('relationTitle').textContent = AFFECTION_TITLES[affectionLevel];
+    }
+    
+    // ========== 复制消息 ==========
+    function setupCopyHandler() {
+      document.getElementById('chatMessages').addEventListener('click', function(e) {
+        const bubble = e.target.closest('.bubble');
+        if(!bubble) return;
+        const text = bubble.innerText;
+        navigator.clipboard.writeText(text).then(()=>{
+          const toast = document.createElement('div');
+          toast.className = 'copy-toast';
+          toast.textContent = '📋 已复制～';
+          document.body.appendChild(toast);
+          setTimeout(()=>toast.remove(), 1500);
+        }).catch(()=>{});
+      });
+    }
+    
+    // ========== 抱抱面板 ==========
+    function openHugPanel() {
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.onclick = function(e) { if(e.target===overlay) overlay.remove(); };
+      let html = '<div class="modal"><h3>🫂 选一个抱抱吧～</h3><div class="hug-panel">';
+      HUGS.forEach((hug, i) => {
+        html += `<button class="hug-item" onclick="sendHug(${i})">${hug}</button>`;
+      });
+      html += '</div><button onclick="this.closest(\'.modal-overlay\').remove()">✖️ 关闭</button></div>';
+      overlay.innerHTML = html;
+      document.body.appendChild(overlay);
+    }
+    
+    function sendHug(index) {
+      document.querySelector('.modal-overlay')?.remove();
+      sendMessage('🫂 ' + HUGS[index]);
+    }
+    
+    // ========== 皮肤面板 ==========
+    function openSkinPanel() {
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.onclick = function(e) { if(e.target===overlay) overlay.remove(); };
+      let html = '<div class="modal"><h3>🎨 切换皮肤</h3><div class="skin-panel">';
+      SKINS.forEach(skin => {
+        const active = document.body.className === skin.id ? ' active' : '';
+        html += `<div class="skin-item${active}" style="background:${skin.color};" onclick="applySkin('${skin.id}')">${skin.name}</div>`;
+      });
+      html += '</div><button onclick="this.closest(\'.modal-overlay\').remove()">✖️ 关闭</button></div>';
+      overlay.innerHTML = html;
+      document.body.appendChild(overlay);
+    }
+    
+    function applySkin(skinId) {
+      document.body.className = skinId;
+      document.querySelector('.modal-overlay')?.remove();
+      saveAllData();
+    }
+    
+    // ========== 人格面板 ==========
+    function openPersonaPanel() {
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.onclick = function(e) { if(e.target===overlay) overlay.remove(); };
+      let html = '<div class="modal"><h3>🎭 切换人格</h3><div style="max-height:50vh;overflow-y:auto;">';
+      Object.entries(PERSONAS).forEach(([id, p]) => {
+        const active = currentPersona === id ? ' style="background:#fce4ec;"' : '';
+        html += `<button${active} onclick="switchPersona('${id}')" style="width:100%;padding:10px;margin:4px 0;border:none;border-radius:12px;text-align:left;cursor:pointer;font-size:14px;">${p.emoji} ${id} · ${p.name}</button>`;
+      });
+      html += '</div><button onclick="this.closest(\'.modal-overlay\').remove()">✖️ 关闭</button></div>';
+      overlay.innerHTML = html;
+      document.body.appendChild(overlay);
+    }
+    
+    function switchPersona(id) {
+      currentPersona = id;
+      affection = Math.floor(Math.random()*10);
+      affectionLevel = 0;
+      updatePersonaBar();
+      document.querySelector('.modal-overlay')?.remove();
+      addMessageToDOM(`✨ 人格已切换为：${PERSONAS[id].emoji} ${PERSONAS[id].name}\n（好感度已重置，开始新的故事吧～）`, false);
+      saveAllData();
+    }
+    
+    // ========== 音乐 ==========
+    function updateMusicSelect() {
+      const select = document.getElementById('musicSelect');
+      select.innerHTML = '';
+      SONGS.forEach((song, i) => {
+        const opt = document.createElement('option');
+        opt.value = i; opt.textContent = song.name;
+        if(i===currentTrack) opt.selected = true;
+        select.appendChild(opt);
+      });
+    }
+    
+    function openMusicPanel() {
+      document.getElementById('musicBar').style.display = 'flex';
+      updateMusicSelect();
+    }
+    
+    function closeMusicBar() {
+      document.getElementById('musicBar').style.display = 'none';
+      document.getElementById('bgmAudio').pause();
+      isPlaying = false;
+      document.getElementById('playBtn').textContent = '▶️';
+    }
+    
+    function changeTrack() {
+      currentTrack = parseInt(document.getElementById('musicSelect').value);
+      const audio = document.getElementById('bgmAudio');
+      audio.src = SONGS[currentTrack].url;
+      audio.volume = document.getElementById('volumeSlider').value / 100;
+      if(isPlaying) audio.play();
+      saveAllData();
+    }
+    
+    function togglePlay() {
+      const audio = document.getElementById('bgmAudio');
+      if(!audio.src || audio.src === window.location.href) {
+        audio.src = SONGS[currentTrack].url;
+      }
+      if(isPlaying) {
+        audio.pause();
+        document.getElementById('playBtn').textContent = '▶️';
+      } else {
+        audio.play().catch(()=>alert('宝～浏览器需要你点一下才能播音乐喔～'));
+        document.getElementById('playBtn').textContent = '⏸️';
+      }
+      isPlaying = !isPlaying;
+    }
+    
+    function changeVolume() {
+      document.getElementById('bgmAudio').volume = document.getElementById('volumeSlider').value / 100;
+    }
+    
+    // ========== 早安晚安 ==========
+    function openAlarmPanel() {
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.onclick = function(e) { if(e.target===overlay) overlay.remove(); };
+      overlay.innerHTML = `
+        <div class="modal">
+          <h3>⏰ 早安晚安设置</h3>
+          <label>☀️ 早安</label>
+          <input type="time" id="morningTime" value="${alarmConfig.morning.time}">
+          <textarea id="morningText" rows="3">${alarmConfig.morning.text}</textarea>
+          <label>🌙 晚安</label>
+          <input type="time" id="nightTime" value="${alarmConfig.night.time}">
+          <textarea id="nightText" rows="3">${alarmConfig.night.text}</textarea>
+          <button onclick="saveAlarm()">💾 保存设置</button>
+          <button onclick="this.closest('.modal-overlay').remove()">✖️ 关闭</button>
+        </div>`;
+      document.body.appendChild(overlay);
+    }
+    
+    function saveAlarm() {
+      alarmConfig.morning.time = document.getElementById('morningTime').value;
+      alarmConfig.morning.text = document.getElementById('morningText').value;
+      alarmConfig.night.time = document.getElementById('nightTime').value;
+      alarmConfig.night.text = document.getElementById('nightText').value;
+      document.querySelector('.modal-overlay')?.remove();
+      saveAllData();
+      addMessageToDOM('✅ 早安晚安设置已保存～', false);
+    }
+    
+    function checkAlarms() {
+      const now = new Date();
+      const timeStr = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+      const lastCheck = localStorage.getItem('lastAlarmCheck') || '';
+      if(timeStr === lastCheck) return;
+      localStorage.setItem('lastAlarmCheck', timeStr);
+      
+      if(alarmConfig.morning.enabled && timeStr === alarmConfig.morning.time) {
+        addMessageToDOM(alarmConfig.morning.text, false);
+      }
+      if(alarmConfig.night.enabled && timeStr === alarmConfig.night.time) {
+        addMessageToDOM(alarmConfig.night.text, false);
+      }
+    }
+    
+    // ========== 导出 & 清空 ==========
+    function exportChat() {
+      let text = '香香软软聊天记录 💕\n\n';
+      chatHistory.forEach(msg => {
+        text += (msg.isSelf ? '🩰 我：' : '🧸 AI：') + msg.text + '\n\n';
+      });
+      const blob = new Blob([text], {type:'text/plain'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = '香香软软聊天记录.txt';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+    
+    function clearChat() {
+      if(confirm('宝～确定要清空所有聊天记录吗？🥺')) {
+        chatHistory = [];
+        document.getElementById('chatMessages').innerHTML = `
+          <div class="message-row">
+            <div class="avatar avatar-other">🧸</div>
+            <div><div class="bubble bubble-other">聊天记录已清空～我们重新开始吧 ✨</div></div>
+          </div>
+          <div class="message-row" id="typingIndicator" style="display:none;">
+            <div class="avatar avatar-other">🧸</div>
+            <div class="bubble bubble-other"><span class="typing-dots">⋯</span></div>
+          </div>`;
+        saveAllData();
+      }
+    }
+    
+    // ========== 事件监听 ==========
+    document.getElementById('sendBtn').addEventListener('click', ()=>sendMessage());
+    document.getElementById('messageInput').addEventListener('keydown', (e)=>{
+      if(e.key==='Enter') sendMessage();
+    });
+    
+    // 初始化
+    init();
+  </script>
+</body>
+</html>
+```
