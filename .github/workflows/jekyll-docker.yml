@@ -1,0 +1,20 @@
+name: Jekyll site CI名称: JJekyll站点CI名称: Jekyll站点CI名称: JJekyll站点CI名称: Jekyll站点CI名称: JJekyll站点CI名称: JJekyll站点CI名称: Jekyll站点CI名称: Jekyll站点CI名称: Jekyll站点CIJJekyll站点CI名称: JJekyll站点CI名称: JJekyll站点CI名称: JJekyll站点CI
+
+on:开启:开启:
+  push:推送:推送:推送:推送:推送:
+    branches: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]
+  pull_request:拉取请求:拉取请求:
+    branches: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]分支: [ "main" ]
+
+jobs:作业:
+  build:构建:
+
+    runs-on运行于: ubuntu-latest运行于: uubuntu-latest运行于: ubuntu-latest运行于: uubuntu-latest运行于: ubuntu-latest运行于: ubuntu-latest运行于: ubuntu-latest
+
+    steps:步骤步骤：步骤:
+    - uses使用: actions/checkout@v4
+    - name: Build the site in the jekyll/builder container    - name: 在jekyll/builder容器中构建站点 - 名称: 在jekyll/builder容器中构建站点 - 名称: 在jekyll/builder容器中构建站点    - 名称: Build the site in the jekyll/builder container    - name: 在jekyll/builder容器中构建站点 - 名称: 在jekyll/builder容器中构建站点 - 名称: -name:在jekyll/builder容器中构建站点    - 名称-name:在jekyll/builder容器中构建站点 - 名称在jekyll/builder容器中构建站点    - 名称在jekyll/builder容器中构建站点
+      run: |运行: |运行: |运行: |运行: |运行: |运行: |
+        docker run \
+        -v ${{ github.workspace }}:/srv/jekyll -v ${{ github.workspace }}/_site:/srv/jekyll/_site \
+        jekyll/builder:latest /bin/bash -c "chmod -R 777 /srv/jekyll && jekyll build --future"
